@@ -6,7 +6,6 @@ import contextlib
 import copy
 import ctypes
 import dataclasses
-import distutils.util
 import enum
 import mmap
 import os
@@ -756,6 +755,21 @@ def _parse_args(argv=None):
         return parser.add_argument(argname, action=store_enum(enum_class), choices=choices,
                                    help=help, metavar=enum_class.__name__.upper())
 
+    def strtobool(val):
+        """Convert a string representation of truth to true (1) or false (0).
+    
+        True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+        are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+        'val' is anything else.
+        """
+        val = val.lower()
+        if val in ("y", "yes", "t", "true", "on", "1"):
+            return 1
+        elif val in ("n", "no", "f", "false", "off", "0"):
+            return 0
+        else:
+            raise ValueError("invalid truth value %r" % (val,))
+
     parser = argparse.ArgumentParser(description='Tweak settings of the Raspberry Pi composite video encoder',
                                      formatter_class=NewlineAwareFormatter)
 
@@ -791,7 +805,7 @@ def _parse_args(argv=None):
         else:
             metavar = field_type.__name__.upper()
             if field_type is bool:
-                field_type = lambda x: bool(distutils.util.strtobool(x))
+                field_type = lambda x: bool(strtobool(x))
             parser.add_argument(argname, type=field_type, help=help, metavar=metavar)
 
     return parser.parse_args(argv)
